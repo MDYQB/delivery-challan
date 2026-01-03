@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Delivery Challan</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+body { font-family: Arial, sans-serif; background:#f2f2f2; padding:10px; }
+input, textarea, button { width:100%; padding:6px; margin:5px 0; }
+
+button { background:#000; color:#fff; padding:10px; border:none; }
+
+table { border-collapse: collapse; width:100%; font-size:12px; }
+td, th { border:1px solid #000; padding:5px; vertical-align:top; }
+
+.center { text-align:center; }
+.right { text-align:right; }
+.bold { font-weight:bold; }
+.small { font-size:11px; }
+</style>
+</head>
+
+<body>
+
+<!-- ================= FORM ================= -->
+<h3>Delivery Challan Entry</h3>
+
+<label>Challan No</label>
+<input id="dcno">
+
+<label>Date</label>
+<input type="date" id="dcdate">
+
+<label>Buyer (Editable)</label>
+<textarea id="buyer" rows="5">
+BUYER: M/S FEDEX EXPRESS TSCS INDIA PRIVATE LIMITED,
+G111, First Floor, Main Warehouse Building,
+AISATS BLR Logistics Park,
+Kempegowda International Airport,
+Devanahalli, Bangalore-560077
+GSTIN:29AABCF6516A1ZZ
+Place of Supply : Bangalore
+</textarea>
+
+<table id="items">
+<tr>
+<th>SL</th><th>Description</th><th>Qty</th><th>X</th>
+</tr>
+</table>
+
+<button onclick="addRow()">➕ Add Item</button>
+<button onclick="generate()">📄 Generate PDF</button>
+
+<!-- ================= PDF ================= -->
+<div id="pdf" style="display:none; background:white; padding:15px;">
+
+<h3 class="center">DELIVERY CHALLAN</h3>
+
+<table>
+<tr>
+<td width="50%">
+<b>WESTERN ENTERPRISES</b><br>
+#6,7th Cross, Eshwara Layout,<br>
+Indiranagar 2nd Stage,<br>
+Bangalore, Karnataka, India 560038<br>
+Mob: 9738219662, 9845230199<br>
+<b>GSTIN:</b> 29AGXPY3155H1ZG<br>
+State: Karnataka, Code: 29<br>
+Email: westernenterprises81@gmail.com
+</td>
+
+<td width="50%">
+<table width="100%">
+<tr><td class="bold">CHALLAN NO.</td><td id="pdcno"></td></tr>
+<tr><td class="bold">Dated</td><td id="pdate"></td></tr>
+<tr><td>Supplier’s Ref</td><td>Vendor ID: 100000081922</td></tr>
+<tr><td>Buyer’s Order No</td><td></td></tr>
+<tr><td>Dispatch Document No</td><td></td></tr>
+<tr><td>Delivery Note Date</td><td></td></tr>
+<tr><td>Dispatched Through</td><td></td></tr>
+<tr><td>Destination</td><td></td></tr>
+<tr><td colspan="2">Terms of Delivery</td></tr>
+</table>
+</td>
+</tr>
+
+<tr>
+<td colspan="2" id="pbuyer"></td>
+</tr>
+</table>
+
+<br>
+
+<table>
+<tr>
+<th width="10%">SL NO</th>
+<th width="70%">DESCRIPTION OF GOODS</th>
+<th width="20%">QUANTITY</th>
+</tr>
+<tbody id="pitems"></tbody>
+</table>
+
+<br><br>
+
+<table width="100%">
+<tr>
+<td width="50%">Receiver’s Seal & Signature</td>
+<td width="50%" class="right bold">For WESTERN ENTERPRISES</td>
+</tr>
+<tr><td></td><td class="right small"><br>Authorized Signatory</td></tr>
+</table>
+
+</div>
+
+<script>
+function addRow(){
+ let t=document.getElementById("items");
+ let r=t.insertRow();
+ r.innerHTML=`<td></td><td><input></td><td><input></td>
+ <td><button onclick="this.parentNode.parentNode.remove()">X</button></td>`;
+ updateSL();
+}
+
+function updateSL(){
+ [...document.querySelectorAll("#items tr")].slice(1).forEach((r,i)=>r.cells[0].innerText=i+1);
+}
+
+<script>
+function generate() {
+  const dcno = document.getElementById("dcno").value.trim();
+  if (!dcno) {
+    alert("Please enter Challan No");
+    return;
+  }
+
+  document.getElementById("pdcno").innerText = dcno;
+  document.getElementById("pdate").innerText =
+    document.getElementById("dcdate").value || new Date().toLocaleDateString();
+
+  document.getElementById("pbuyer").innerText =
+    document.getElementById("buyer").value;
+
+  const pitems = document.getElementById("pitems");
+  pitems.innerHTML = "";
+
+  [...document.querySelectorAll("#items tr")]
+    .slice(1)
+    .forEach((r, i) => {
+      const desc = r.cells[1].querySelector("input").value;
+      const qty = r.cells[2].querySelector("input").value;
+      if (desc && qty) {
+        pitems.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${desc}</td>
+            <td>${qty}</td>
+          </tr>`;
+      }
+    });
+
+  const element = document.getElementById("pdf");
+
+  setTimeout(() => {
+    html2pdf()
+      .set({
+        margin: 10,
+        filename: `DC_${dcno}.pdf`,
+        image: { type: "jpeg", quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+      })
+      .from(element)
+      .save();
+  }, 300);
+}
+</script>
+
+</body>
+</html>
