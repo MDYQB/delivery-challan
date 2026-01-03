@@ -11,7 +11,7 @@
 body { font-family: Arial, sans-serif; background:#f2f2f2; padding:10px; }
 input, textarea, button { width:100%; padding:6px; margin:5px 0; }
 
-button { background:#000; color:#fff; padding:10px; border:none; }
+button { background:#000; color:#fff; padding:10px; border:none; cursor:pointer; }
 
 table { border-collapse: collapse; width:100%; font-size:12px; }
 td, th { border:1px solid #000; padding:5px; vertical-align:top; }
@@ -25,7 +25,6 @@ td, th { border:1px solid #000; padding:5px; vertical-align:top; }
 
 <body>
 
-<!-- ================= FORM ================= -->
 <h3>Delivery Challan Entry</h3>
 
 <label>Challan No</label>
@@ -117,18 +116,22 @@ Email: westernenterprises81@gmail.com
 
 <script>
 function addRow(){
- let t=document.getElementById("items");
- let r=t.insertRow();
- r.innerHTML=`<td></td><td><input></td><td><input></td>
- <td><button onclick="this.parentNode.parentNode.remove()">X</button></td>`;
- updateSL();
+  const t = document.getElementById("items");
+  const r = t.insertRow();
+  r.innerHTML = `
+    <td></td>
+    <td><input></td>
+    <td><input type="number"></td>
+    <td><button onclick="this.closest('tr').remove(); updateSL()">X</button></td>
+  `;
+  updateSL();
 }
 
 function updateSL(){
- [...document.querySelectorAll("#items tr")].slice(1).forEach((r,i)=>r.cells[0].innerText=i+1);
+  [...document.querySelectorAll("#items tr")].slice(1)
+    .forEach((r,i)=> r.cells[0].innerText = i+1);
 }
 
-<script>
 function generate() {
   const dcno = document.getElementById("dcno").value.trim();
   if (!dcno) {
@@ -139,42 +142,31 @@ function generate() {
   document.getElementById("pdcno").innerText = dcno;
   document.getElementById("pdate").innerText =
     document.getElementById("dcdate").value || new Date().toLocaleDateString();
-
-  document.getElementById("pbuyer").innerText =
-    document.getElementById("buyer").value;
+  document.getElementById("pbuyer").innerText = document.getElementById("buyer").value;
 
   const pitems = document.getElementById("pitems");
   pitems.innerHTML = "";
 
-  [...document.querySelectorAll("#items tr")]
-    .slice(1)
+  [...document.querySelectorAll("#items tr")].slice(1)
     .forEach((r, i) => {
       const desc = r.cells[1].querySelector("input").value;
       const qty = r.cells[2].querySelector("input").value;
       if (desc && qty) {
-        pitems.innerHTML += `
-          <tr>
-            <td>${i + 1}</td>
-            <td>${desc}</td>
-            <td>${qty}</td>
-          </tr>`;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${i+1}</td><td>${desc}</td><td>${qty}</td>`;
+        pitems.appendChild(tr);
       }
     });
 
   const element = document.getElementById("pdf");
 
-  setTimeout(() => {
-    html2pdf()
-      .set({
-        margin: 10,
-        filename: `DC_${dcno}.pdf`,
-        image: { type: "jpeg", quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-      })
-      .from(element)
-      .save();
-  }, 300);
+  html2pdf().set({
+    margin: 10,
+    filename: `DC_${dcno}.pdf`,
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2, useCORS: true },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+  }).from(element).save();
 }
 </script>
 
