@@ -54,7 +54,7 @@ Place of Supply : Bangalore
 <button onclick="generate()">📄 Generate PDF</button>
 
 <!-- ================= PDF ================= -->
-<div id="pdf" style="display:none; background:white; padding:15px;">
+<div id="pdf" style="position:absolute; left:-9999px; background:white; padding:15px; width:210mm;">
 
 <h3 class="center">DELIVERY CHALLAN</h3>
 
@@ -149,7 +149,7 @@ function generate() {
 
   [...document.querySelectorAll("#items tr")].slice(1)
     .forEach((r, i) => {
-      const desc = r.cells[1].querySelector("input").value;
+      const desc = r.cells[1].querySelector("input").value.toUpperCase(); // Uppercase
       const qty = r.cells[2].querySelector("input").value;
       if (desc && qty) {
         const tr = document.createElement("tr");
@@ -159,6 +159,7 @@ function generate() {
     });
 
   const element = document.getElementById("pdf");
+  element.style.display = "block"; // temporarily show div
 
   html2pdf().set({
     margin: 10,
@@ -166,7 +167,9 @@ function generate() {
     image: { type: "jpeg", quality: 0.98 },
     html2canvas: { scale: 2, useCORS: true },
     jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-  }).from(element).save();
+  }).from(element).save().then(() => {
+    element.style.display = "none"; // hide again after saving
+  });
 }
 </script>
 
